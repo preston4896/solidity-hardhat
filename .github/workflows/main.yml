@@ -1,0 +1,102 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Cache dependencies
+      - name: Cache node dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
+
+      # Cache contract artifacts and typechains
+      - name: Cache hardhat contract artifacts
+        uses: actions/cache@v2
+        with:
+          path: |
+            artifacts
+            typechain
+          key: ${{ runner.os }}-${{ hashFiles('contracts/**/*') }}
+
+      # Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+
+      # Upgrade PIP
+      - name: Upgrade pip
+        run: |
+          # install pip=>20.1 to use "pip cache dir"
+          python3 -m pip install --upgrade pip
+      - name: Get pip cache dir
+        id: pip-cache
+        run: echo "::set-output name=dir::$(pip cache dir)"
+
+      # Cache PIP
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          
+      # Install dependencies
+      - name: Install dependencies
+        run: yarn
+
+      - name: Install Slither
+        run: |
+          python3 -m pip install slither-analyzer
+
+      - name: hardhat compile
+        run: yarn compile
+
+      - name: hardhat test
+        run: yarn test
+
+      - name: slither-analyzer
+        run: |
+          slither . --sarif slither.sarif --disable-color --print human-summary > slither-audit.txt 2>&1 || true
+
+      - name: Generate Slither Report
+        id: get-comment-body
+        run: |
+          body=$(cat slither-audit.txt)
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}" 
+          echo ::set-output name=body::$body
+      
+      - name: Comment Slither Report
+        uses: peter-evans/commit-comment@v1
+        with:
+          body: ${{ steps.get-comment-body.outputs.body }}
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: "slither.sarif"
