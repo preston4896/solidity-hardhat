@@ -82,7 +82,11 @@ jobs:
         run: |
           yarn hardhat clean
           yarn coverage
-          cat coverage/lcov.info | coveralls
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: slither-analyzer
         run: |
