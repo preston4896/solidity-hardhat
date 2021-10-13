@@ -78,6 +78,12 @@ jobs:
       - name: hardhat test
         run: yarn test
 
+      - name: solidity-coverage
+        run: |
+          yarn hardhat clean
+          yarn coverage
+          cat coverage/lcov.info | coveralls
+
       - name: slither-analyzer
         run: |
           slither . --sarif slither.sarif || true
