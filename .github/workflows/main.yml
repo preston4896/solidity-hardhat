@@ -80,21 +80,7 @@ jobs:
 
       - name: slither-analyzer
         run: |
-          slither . --sarif slither.sarif --disable-color --print human-summary > slither-audit.txt 2>&1 || true
-
-      - name: Generate Slither Report
-        id: get-comment-body
-        run: |
-          body=$(cat slither-audit.txt)
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}" 
-          echo ::set-output name=body::$body
-      
-      - name: Comment Slither Report
-        uses: peter-evans/commit-comment@v1
-        with:
-          body: ${{ steps.get-comment-body.outputs.body }}
+          slither . --sarif slither.sarif || true
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v1
