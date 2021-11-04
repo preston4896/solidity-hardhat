@@ -39,16 +39,6 @@ jobs:
           path: |
             **/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
-
-      # Cache contract artifacts and typechains
-      - name: Cache hardhat contract artifacts
-        id: cache-artifacts
-        uses: actions/cache@v2
-        with:
-          path: |
-            artifacts
-            typechain
-          key: ${{ runner.os }}-${{ hashFiles('contracts/**/*') }}
           
       # Install dependencies
       - name: Install dependencies
@@ -56,7 +46,6 @@ jobs:
         run: yarn
 
       - name: Compile the contracts
-        if: steps.cache-artifacts.outputs.cache-hit != 'true'
         run: yarn compile
 
       - name: Run tests
@@ -97,10 +86,6 @@ jobs:
           name: contract-artifacts
           path: ./artifacts
 
-      - name: Debug current directory
-        run: |
-          ls -R
-
        # Setup Python
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -110,19 +95,13 @@ jobs:
       # Upgrade PIP
       - name: Upgrade pip
         run: |
-          # install pip=>20.1 to use "pip cache dir"
           python3 -m pip install --upgrade pip
-
-      - name: Get pip cache dir
-        id: pip-cache-dir
-        run: echo "::set-output name=dir::$(pip cache dir)"
 
       # Cache PIP
       - name: Cache pip
         id: cache-pip
         uses: actions/cache@v2
         with:
-          path: ${{ steps.pip-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - name: Install Slither
@@ -132,7 +111,7 @@ jobs:
 
       - name: slither-analyzer
         run: |
-          slither . --ignore-compile --filter-paths "hardhat" --sarif slither.sarif || true
+          slither . --ignore-compile --sarif slither.sarif --filter-paths "hardhat/console.sol" || true
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v1
