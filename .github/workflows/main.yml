@@ -132,7 +132,7 @@ jobs:
 
       - name: slither-analyzer
         run: |
-          slither . --ignore-compile --sarif slither.sarif || true
+          slither . --ignore-compile --filter-paths "hardhat" --sarif slither.sarif || true
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v1
