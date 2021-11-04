@@ -86,7 +86,18 @@ jobs:
           name: contract-artifacts
           path: ./artifacts
 
-       # Setup Python
+      - name: Setup Nodejs 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14.x"
+          check-latest: true
+
+      - name: Install Hardhat
+        run: |
+          npm ci
+          npx hardhat compile
+
+      # Setup Python
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
