@@ -86,16 +86,19 @@ jobs:
           name: contract-artifacts
           path: ./artifacts
 
-      - name: Setup Nodejs 14.x
-        uses: actions/setup-node@v2
+      # Cache dependencies
+      - name: Cache node dependencies
+        id: cache-node
+        uses: actions/cache@v2
         with:
-          node-version: "14.x"
-          check-latest: true
-
-      - name: Install Hardhat
-        run: |
-          npm ci
-          npx hardhat compile
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
+          
+      # Install dependencies
+      - name: Install dependencies
+        if: steps.cache-node.outputs.cache-hit != 'true'
+        run: yarn
 
       # Setup Python
       - name: Setup Python
