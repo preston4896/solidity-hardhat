@@ -91,14 +91,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Debug current dir
-        run: |
-          ls -a
-
       - name: Get Contract Artifacts
         uses: actions/download-artifact@v2
         with:
           name: contract-artifacts
+          path: ./artifacts
+
+      - name: Debug current directory
+        run: |
+          ls -R
 
        # Setup Python
       - name: Setup Python
