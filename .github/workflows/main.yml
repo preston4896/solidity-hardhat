@@ -42,6 +42,7 @@ jobs:
 
       # Cache contract artifacts and typechains
       - name: Cache hardhat contract artifacts
+        id: cache-artifacts
         uses: actions/cache@v2
         with:
           path: |
@@ -55,10 +56,18 @@ jobs:
         run: yarn
 
       - name: Compile the contracts
+        if: steps.cache-artifacts.outputs.cache-hit != 'true'
         run: yarn compile
 
       - name: Run tests
         run: yarn test
+
+      - name: Archive Contract Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: contract-artifacts
+          path: |
+            artifacts
 
       # - name: Run Coverage
       #   run: |
@@ -82,10 +91,14 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # - name: Get Contract Artifacts
-      #   uses: actions/download-artifact@v2
-      #   with:
-      #     name: contract-artifacts
+      - name: Debug current dir
+        run: |
+          ls -a
+
+      - name: Get Contract Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: contract-artifacts
 
        # Setup Python
       - name: Setup Python
@@ -125,7 +138,7 @@ jobs:
         with:
           sarif_file: "slither.sarif"
 
-      # - name: Delete Artifact
-      #   uses: geekyeggo/delete-artifact@v1
-      #   with:
-      #     name: contract-artifacts
+      - name: Delete Artifact
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: contract-artifacts
