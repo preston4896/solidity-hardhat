@@ -2,13 +2,19 @@
 
 name: CI
 
+# ENV variable to load Alchemy API key
+env:
+  ALCHEMY_API: ${{ secrets.ALCHEMY_API }}
+
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - release*/**
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -41,8 +47,50 @@ jobs:
             artifacts
             typechain
           key: ${{ runner.os }}-${{ hashFiles('contracts/**/*') }}
+          
+      # Install dependencies
+      - name: Install dependencies
+        run: yarn
 
-      # Setup Python
+      - name: Compile the contracts
+        run: yarn compile
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Archive Contract Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: contract-artifacts
+          path: |
+            artifacts
+
+      - name: Run Coverage
+        run: |
+          yarn hardhat clean
+          yarn coverage
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Slither static scanning workflow
+  security-scanning:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Get Contract Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: contract-artifacts
+
+       # Setup Python
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -63,30 +111,10 @@ jobs:
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          
-      # Install dependencies
-      - name: Install dependencies
-        run: yarn
 
       - name: Install Slither
         run: |
           python3 -m pip install slither-analyzer
-
-      - name: hardhat compile
-        run: yarn compile
-
-      - name: hardhat test
-        run: yarn test
-
-      - name: solidity-coverage
-        run: |
-          yarn hardhat clean
-          yarn coverage
-
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: slither-analyzer
         run: |
