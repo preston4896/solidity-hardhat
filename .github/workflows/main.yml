@@ -67,13 +67,16 @@ jobs:
 
       - name: Run Coverage
         run: |
-          yarn hardhat clean
           yarn coverage
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean Up
+        run: |
+          yarn hardhat clean
 
   # Slither static scanning workflow
   security-scanning:
@@ -127,3 +130,8 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: "slither.sarif"
+
+      - name: Delete Artifact
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: contract-artifacts
