@@ -58,14 +58,14 @@ jobs:
           path: |
             artifacts
 
-      # - name: Run Coverage
-      #   run: |
-      #     yarn coverage
+      - name: Run Coverage
+        run: |
+          yarn coverage
 
-      # - name: Coveralls
-      #   uses: coverallsapp/github-action@master
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   # Slither static scanning workflow
   security-scanning:
