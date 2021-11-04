@@ -77,6 +77,9 @@ jobs:
 
   # Slither static scanning workflow
   security-scanning:
+    # Can only be run after the build job is complete
+    needs: build
+
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
