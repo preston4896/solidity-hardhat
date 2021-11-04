@@ -33,7 +33,7 @@ jobs:
 
       # Cache dependencies
       - name: Cache node dependencies
-        id: cache
+        id: cache-node
         uses: actions/cache@v2
         with:
           path: |
@@ -51,7 +51,7 @@ jobs:
           
       # Install dependencies
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-node.outputs.cache-hit != 'true'
         run: yarn
 
       - name: Compile the contracts
@@ -98,24 +98,27 @@ jobs:
         run: |
           # install pip=>20.1 to use "pip cache dir"
           python3 -m pip install --upgrade pip
+
       - name: Get pip cache dir
-        id: pip-cache
+        id: pip-cache-dir
         run: echo "::set-output name=dir::$(pip cache dir)"
 
       # Cache PIP
       - name: Cache pip
+        id: cache-pip
         uses: actions/cache@v2
         with:
-          path: ${{ steps.pip-cache.outputs.dir }}
+          path: ${{ steps.pip-cache-dir.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - name: Install Slither
+        if: steps.cache-pip.outputs.cache-hit != 'true'
         run: |
           python3 -m pip install slither-analyzer
 
       - name: slither-analyzer
         run: |
-          slither . --sarif slither.sarif || true
+          slither . --ignore-compile --sarif slither.sarif || true
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v1
