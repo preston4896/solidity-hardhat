@@ -27,18 +27,18 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Setup Python
-      - name: Setup Python
-        id: setup-python
-        uses: actions/setup-python@v2
+#       # Setup Python
+#       - name: Setup Python
+#         id: setup-python
+#         uses: actions/setup-python@v2
 
-      # Cache PIP
-      - name: Cache PIP
-        id: python-cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipenv-${{ hashFiles('Pipfile.lock') }}
+#       # Cache PIP
+#       - name: Cache PIP
+#         id: python-cache
+#         uses: actions/cache@v2
+#         with:
+#           path: ~/.local/share/virtualenvs
+#           key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipenv-${{ hashFiles('Pipfile.lock') }}
 
       # Cache dependencies
       - name: Cache node dependencies
@@ -55,7 +55,7 @@ jobs:
         run: yarn
   
       - name: Install Slither
-        if: steps.python-cache.outputs.cache-hit != 'true'
+#         if: steps.python-cache.outputs.cache-hit != 'true'
         run: |
           python3 -m pip install --upgrade pip
           pip install slither-analyzer
