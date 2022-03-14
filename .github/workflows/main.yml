@@ -1,13 +1,9 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
-
-# ENV variable to load Alchemy API key
-env:
-  ALCHEMY_API: ${{ secrets.ALCHEMY_API }}
+name: Solidity CI and Security Static Scan
 
 # Controls when the workflow will run
-on:
+on: 
   push:
     branches:
       - main
@@ -31,41 +27,47 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      # Setup Python
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v2
+
+      # Cache PIP
+      - name: Cache PIP
+        id: python-cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipenv-${{ hashFiles('Pipfile.lock') }}
+
       # Cache dependencies
       - name: Cache node dependencies
-        id: cache-node
         uses: actions/cache@v2
+        id: yarn-cache
         with:
           path: |
             **/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
           
       # Install dependencies
       - name: Install dependencies
-        if: steps.cache-node.outputs.cache-hit != 'true'
+        if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn
+  
+      - name: Install Slither
+        if: steps.python-cache.outputs.cache-hit != 'true'
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install slither-analyzer
 
-      - name: Compile the contracts
+      - name: Lint
+        run: yarn lint
+      
+      - name: Artifact build
         run: yarn compile
 
-      - name: Run tests
+      - name: Unit-Test Contracts
         run: yarn test
-
-      - name: Archive Contract Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: contract-artifacts
-          path: |
-            artifacts
-
-      - name: Run Coverage
-        run: |
-          yarn coverage
-
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   # Slither static scanning workflow
   security-scanning:
@@ -80,12 +82,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Get Contract Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: contract-artifacts
-          path: ./artifacts
-
       # Cache dependencies
       - name: Cache node dependencies
         id: cache-node
@@ -100,33 +96,34 @@ jobs:
         if: steps.cache-node.outputs.cache-hit != 'true'
         run: yarn
 
-      # Setup Python
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
+#       # Setup Python
+#       - name: Setup Python
+#         uses: actions/setup-python@v2
+#         with:
+#           python-version: "3.8"
 
-      # Upgrade PIP
-      - name: Upgrade pip
-        run: |
-          # install pip=>20.1 to use "pip cache dir"
-          python3 -m pip install --upgrade pip
+#       # Upgrade PIP
+#       - name: Upgrade pip
+#         run: |
+#           # install pip=>20.1 to use "pip cache dir"
+#           python3 -m pip install --upgrade pip
 
-      - name: Get pip cache dir
-        id: pip-cache-dir
-        run: echo "::set-output name=dir::$(pip cache dir)"
+#       - name: Get pip cache dir
+#         id: pip-cache-dir
+#         run: echo "::set-output name=dir::$(pip cache dir)"
 
-      # Cache PIP
-      - name: Cache pip
-        id: cache-pip
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.pip-cache-dir.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+#       # Cache PIP
+#       - name: Cache pip
+#         id: cache-pip
+#         uses: actions/cache@v2
+#         with:
+#           path: ${{ steps.pip-cache-dir.outputs.dir }}
+#           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
       - name: Install Slither
         run: |
-          python3 -m pip install slither-analyzer
+          python3 -m pip install --upgrade pip
+          pip install slither-analyzer
 
       - name: slither-analyzer
         run: |
