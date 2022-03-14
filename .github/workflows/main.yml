@@ -59,9 +59,6 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           pip install slither-analyzer
-
-      - name: Lint
-        run: yarn lint
       
       - name: Artifact build
         run: yarn compile
