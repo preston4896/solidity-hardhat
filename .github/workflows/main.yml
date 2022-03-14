@@ -65,63 +65,7 @@ jobs:
 
       - name: Unit-Test Contracts
         run: yarn test
-
-  # Slither static scanning workflow
-  security-scanning:
-    # Can only be run after the build job is complete
-    needs: build
-
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      # Cache dependencies
-      - name: Cache node dependencies
-        id: cache-node
-        uses: actions/cache@v2
-        with:
-          path: |
-            **/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
-          
-      # Install dependencies
-      - name: Install dependencies
-        if: steps.cache-node.outputs.cache-hit != 'true'
-        run: yarn
-
-#       # Setup Python
-#       - name: Setup Python
-#         uses: actions/setup-python@v2
-#         with:
-#           python-version: "3.8"
-
-#       # Upgrade PIP
-#       - name: Upgrade pip
-#         run: |
-#           # install pip=>20.1 to use "pip cache dir"
-#           python3 -m pip install --upgrade pip
-
-#       - name: Get pip cache dir
-#         id: pip-cache-dir
-#         run: echo "::set-output name=dir::$(pip cache dir)"
-
-#       # Cache PIP
-#       - name: Cache pip
-#         id: cache-pip
-#         uses: actions/cache@v2
-#         with:
-#           path: ${{ steps.pip-cache-dir.outputs.dir }}
-#           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-
-      - name: Install Slither
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install slither-analyzer
-
+        
       - name: slither-analyzer
         run: |
           slither . --ignore-compile --sarif slither.sarif --filter-paths "hardhat"  || true
@@ -130,8 +74,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: "slither.sarif"
-
-      - name: Delete Artifact
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: contract-artifacts
