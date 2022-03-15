@@ -49,4 +49,5 @@ jobs:
         with:
           name: ABIs-${{ steps.version.outputs.tag }}
           files: |
-          # specify ABIs here...
+            ./artifacts/contracts/*.sol/*.json
+          # specify ABIs here
