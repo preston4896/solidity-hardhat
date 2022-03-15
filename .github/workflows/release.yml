@@ -6,7 +6,7 @@ name: Release ABI
 on: 
   push:
     tags:
-      - "v.*.*"
+      - "v*.*.*"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -49,5 +49,4 @@ jobs:
         with:
           name: ABIs-${{ steps.version.outputs.tag }}
           files: |
-            ./artifacts/contracts/*.sol/*.json
           # specify ABIs here...
