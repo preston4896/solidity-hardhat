@@ -16,6 +16,7 @@
     "chai": "^4.3.4",
     "ethers": "^5.4.7",
     "hardhat": "^2.6.5",
+    "rlp": "^3.0.0",
     "solidity-coverage": "^0.7.17"
   },
   "packageManager": "yarn@3.2.0"
