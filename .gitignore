@@ -1,10 +1,16 @@
-#node_modules
 .env
 coverage
 coverage.json
 typechain
-.yarn/*
 
 #Hardhat files
 cache
 artifacts
+
+#Yarn2
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
