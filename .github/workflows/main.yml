@@ -22,15 +22,18 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
+    env:
+      commit_url: ${{ github.server_url'/'github.repository'/commit/'github.sha'/' }}
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-#       # Setup Python
-#       - name: Setup Python
-#         id: setup-python
-#         uses: actions/setup-python@v2
+      # Setup Python
+      - name: Setup Python
+        id: setup-python
+        uses: actions/setup-python@v2
 
 #       # Cache PIP
 #       - name: Cache PIP
@@ -58,9 +61,22 @@ jobs:
         
       - name: slither-analyzer
         run: |
-          slither . --ignore-compile --sarif slither.sarif --filter-paths "hardhat"  || true
+          slither . --ignore-compile --sarif slither.sarif --filter-paths "hardhat" --checklist --markdown-root ${{ env.commit_url }} > ./report.md  || true
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: "slither.sarif"
+
+      - name: Render template
+        id: template
+        uses: chuhlomin/render-template@v1.4
+        with:
+          template: ./report.md
+
+      - name: Create comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.number }}
+          body: ${{ steps.template.outputs.result }}
