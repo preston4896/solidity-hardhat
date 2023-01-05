@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      commit_url: ${{ github.server_url'/'github.repository'/commit/'github.sha'/' }}
+      commit_url: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}/
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
