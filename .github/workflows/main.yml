@@ -50,7 +50,6 @@ jobs:
       - name: Install Slither
 #         if: steps.python-cache.outputs.cache-hit != 'true'
         run: |
-          python3 -m pip install --upgrade pip
           pip install slither-analyzer
       
       - name: Artifact build
